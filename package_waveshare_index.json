@@ -4,6 +4,25 @@
       "websiteURL": "https://github.com/waveshareteam/arduino-esp32-boards",
       "platforms": [
         {
+          "name": "Waveshare ESP32 Boards",
+          "architecture": "esp32",
+          "version": "0.1.1",
+          "category": "Contributed",
+          "url": "https://github.com/waveshareteam/arduino-esp32-boards/releases/download/v0.1.1/waveshare-esp32-0.1.1.zip",
+          "archiveFileName": "waveshare-esp32-0.1.1.zip",
+          "checksum": "SHA-256:1DD0474826F8C494115F4C850CBB2327FC37C5585B5B6885F51CA33E1A0077E7",
+          "size": "9214",
+          "boards": [
+            {
+              "name": "Waveshare ESP32-P4-WIFI6-DB Touch LCD 10.1"
+            },
+            {
+              "name": "Waveshare ESP32-P4-POE-ETH"
+            }
+          ],
+          "toolsDependencies": []
+        },
+        {
           "toolsDependencies": [],
           "checksum": "SHA-256:552826BB9DD6E41FFA321FFB5683FBE40AA49AB3F8B9701E566C08D777BF3B29",
           "category": "Contributed",
