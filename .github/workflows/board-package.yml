@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   verify:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       ESP32_CORE_VERSION: '4.0.0'
       VERSION: ${{ inputs.version || '0.0.0' }}
@@ -34,28 +34,24 @@ jobs:
           path: ${{ runner.temp }}/espressif-downloads
           key: arduino-esp32-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.ESP32_CORE_VERSION }}
       - name: Build the archive and indexes
-        run: python scripts/package.py $env:VERSION dist
+        run: python scripts/package.py "$VERSION" dist
       - name: Install through Boards Manager and compile
-        shell: pwsh
+        shell: bash
         run: |
-          $ErrorActionPreference = 'Stop'
-          $PSNativeCommandUseErrorActionPreference = $true
-          $env:ARDUINO_DIRECTORIES_DATA = Join-Path $env:RUNNER_TEMP 'arduino-data'
-          $env:ARDUINO_DIRECTORIES_USER = Join-Path $env:RUNNER_TEMP 'arduino-sketchbook'
-          $env:ARDUINO_DIRECTORIES_DOWNLOADS = Join-Path $env:RUNNER_TEMP 'espressif-downloads'
-          $server = Start-Process python -ArgumentList '-m', 'http.server', '8765', '--bind', '127.0.0.1', '--directory', 'dist' -WindowStyle Hidden -PassThru
-          try {
-            $index = 'http://127.0.0.1:8765/package_waveshare_test_index.json'
-            Invoke-WebRequest $index -MaximumRetryCount 5 -RetryIntervalSec 1 | Out-Null
-            $urls = "https://espressif.github.io/arduino-esp32/package_esp32_index.json,$index"
-            arduino-cli core update-index --additional-urls $urls
-            arduino-cli core install "esp32:esp32@$env:ESP32_CORE_VERSION" --additional-urls $urls
-            $env:ARDUINO_DIRECTORIES_DOWNLOADS = Join-Path $env:RUNNER_TEMP 'waveshare-downloads'
-            arduino-cli core install "waveshare:esp32@$env:VERSION" --additional-urls $urls
-            arduino-cli compile --fqbn waveshare:esp32:waveshare_esp32_p4_wifi6_db_touch_lcd_10_1 examples/board_check
-          } finally {
-            Stop-Process -Id $server.Id -ErrorAction SilentlyContinue
-          }
+          export ARDUINO_DIRECTORIES_DATA="$RUNNER_TEMP/arduino-data"
+          export ARDUINO_DIRECTORIES_USER="$RUNNER_TEMP/arduino-sketchbook"
+          export ARDUINO_DIRECTORIES_DOWNLOADS="$RUNNER_TEMP/espressif-downloads"
+          python -m http.server 8765 --bind 127.0.0.1 --directory dist &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          index='http://127.0.0.1:8765/package_waveshare_test_index.json'
+          curl --fail --silent --show-error --retry 5 --retry-connrefused --retry-delay 1 "$index" -o /dev/null
+          urls="https://espressif.github.io/arduino-esp32/package_esp32_index.json,$index"
+          arduino-cli core update-index --additional-urls "$urls"
+          arduino-cli core install "esp32:esp32@$ESP32_CORE_VERSION" --additional-urls "$urls"
+          export ARDUINO_DIRECTORIES_DOWNLOADS="$RUNNER_TEMP/waveshare-downloads"
+          arduino-cli core install "waveshare:esp32@$VERSION" --additional-urls "$urls"
+          arduino-cli compile --fqbn waveshare:esp32:waveshare_esp32_p4_wifi6_db_touch_lcd_10_1 examples/board_check
       - uses: actions/upload-artifact@v4
         with:
           name: board-package
