@@ -60,6 +60,19 @@ jobs:
           git -C "$mirror" config user.name 'github-actions[bot]'
           git -C "$mirror" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git -C "$mirror" add package_waveshare_index.json "archives/$file"
+          # Backfilling an older package must not roll back the mirrored source.
+          latest=$(jq -r '.packages[0].platforms[0].version' "$mirror/package_waveshare_index.json")
+          if [[ "$VERSION" == "$latest" ]]; then
+            source="$RUNNER_TEMP/release-source"
+            mkdir -p "$source"
+            git fetch --no-tags origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
+            git archive "refs/tags/v$VERSION" | tar -x -C "$source"
+            for path in .github examples platform scripts; do
+              rsync -a --delete "$source/$path/" "$mirror/$path/"
+            done
+            cp "$source/LICENSE" "$source/README.md" "$mirror/"
+            git -C "$mirror" add -A -- .github examples platform scripts LICENSE README.md
+          fi
           if ! git -C "$mirror" diff --cached --quiet; then
             git -C "$mirror" commit -m "Mirror Waveshare board package $VERSION"
             git -C "$mirror" -c credential.helper= push origin HEAD:main
