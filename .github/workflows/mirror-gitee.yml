@@ -1,0 +1,69 @@
+name: Mirror board package to Gitee
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+    secrets:
+      GITEE_TOKEN:
+        required: true
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Existing GitHub release version (for example, 0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gitee-board-mirror
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+      GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+      GIT_TERMINAL_PROMPT: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Download the published archive and update the Gitee mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          if [[ -z "$GITEE_TOKEN" ]]; then
+            echo 'Configure the GITEE_TOKEN repository secret to enable the mirror.' >&2
+            exit 1
+          fi
+          file="waveshare-esp32-$VERSION.zip"
+          gh release download "v$VERSION" --repo "$GITHUB_REPOSITORY" --pattern "$file" --dir "$RUNNER_TEMP"
+          export GIT_ASKPASS="$RUNNER_TEMP/gitee-askpass"
+          cat > "$GIT_ASKPASS" <<'ASKPASS'
+          #!/bin/sh
+          case "$1" in
+            *Username*) printf '%s\n' pingshui11 ;;
+            *) printf '%s\n' "$GITEE_TOKEN" ;;
+          esac
+          ASKPASS
+          chmod 700 "$GIT_ASKPASS"
+          mirror="$RUNNER_TEMP/gitee-mirror"
+          git -c credential.helper= clone --branch main --single-branch https://gitee.com/pingshui11/arduino-esp32-boards.git "$mirror"
+          python3 scripts/mirror_gitee.py "$VERSION" "$RUNNER_TEMP/$file" "$mirror"
+          git -C "$mirror" config user.name 'github-actions[bot]'
+          git -C "$mirror" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C "$mirror" add package_waveshare_index.json "archives/$file"
+          if ! git -C "$mirror" diff --cached --quiet; then
+            git -C "$mirror" commit -m "Mirror Waveshare board package $VERSION"
+            git -C "$mirror" -c credential.helper= push origin HEAD:main
+          fi
+          url="https://gitee.com/pingshui11/arduino-esp32-boards/raw/main/archives/$file"
+          curl -fsSL --retry 5 --retry-all-errors "$url" -o "$RUNNER_TEMP/gitee-$file"
+          cmp "$RUNNER_TEMP/$file" "$RUNNER_TEMP/gitee-$file"

@@ -25,3 +25,9 @@ The [Board package workflow](.github/workflows/board-package.yml) builds an arch
 To publish a release, run **Actions > Board package > Run workflow** on `main` with an unused version such as `0.1.1`. After verification passes, the workflow uploads the archive to a GitHub prerelease and updates the public index while retaining older entries. If the release succeeds but the index push fails, recover by applying the generated index from the workflow artifact after checking it against the latest public index.
 
 The workflow follows the [Arduino platform specification](https://docs.arduino.cc/arduino-cli/platform-specification/), [package index specification](https://docs.arduino.cc/arduino-cli/package_index_json-specification/), and the install test pattern in the [ArduinoCore-samd release workflow](https://github.com/arduino/ArduinoCore-samd/blob/master/.github/workflows/release.yaml).
+
+## Gitee mirror
+
+GitHub is the source repository. The release workflow mirrors the same ZIP and a Gitee-specific Boards Manager index to [Gitee](https://gitee.com/pingshui11/arduino-esp32-boards) after publishing to GitHub. Configure the GitHub Actions repository secret `GITEE_TOKEN` with a Gitee personal access token that can push to that repository.
+
+To backfill an existing release or retry a failed mirror, run **Actions > Mirror board package to Gitee > Run workflow** with its version. The mirror stores the archive and index in the same commit. Gitee users can add the [Gitee index](https://gitee.com/pingshui11/arduino-esp32-boards/raw/main/package_waveshare_index.json) after the first successful mirror.

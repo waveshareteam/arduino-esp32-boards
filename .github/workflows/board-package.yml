@@ -86,3 +86,11 @@ jobs:
           git add package_waveshare_index.json
           git commit -m "Publish board package $VERSION"
           git push origin HEAD:main
+
+  mirror_gitee:
+    needs: publish
+    uses: ./.github/workflows/mirror-gitee.yml
+    with:
+      version: ${{ inputs.version }}
+    secrets:
+      GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
