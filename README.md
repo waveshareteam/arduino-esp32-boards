@@ -6,7 +6,7 @@ Experimental Arduino Boards Manager package for the Waveshare ESP32-P4-WIFI6-DB 
 
 1. In Arduino IDE 2, install **esp32 by Espressif Systems 4.0.0** from Boards Manager.
 2. Open **File > Preferences > Additional boards manager URLs** and add:
-   `https://raw.githubusercontent.com/ycorez/arduino-esp32-boards/main/package_waveshare_index.json`
+   `https://raw.githubusercontent.com/waveshareteam/arduino-esp32-boards/main/package_waveshare_index.json`
 3. In Boards Manager, install **Waveshare ESP32 Boards**. Select **Waveshare ESP32-P4-WIFI6-DB Touch LCD 10.1** from the Waveshare platform.
 4. Open [board_check.ino](examples/board_check/board_check.ino), compile, select the board's serial port, and upload.
 

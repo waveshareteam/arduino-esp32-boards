@@ -1,7 +1,7 @@
 {
   "packages": [
     {
-      "websiteURL": "https://github.com/ycorez/arduino-esp32-boards",
+      "websiteURL": "https://github.com/waveshareteam/arduino-esp32-boards",
       "platforms": [
         {
           "toolsDependencies": [],
@@ -15,7 +15,7 @@
           ],
           "version": "0.1.0",
           "size": "7125",
-          "url": "https://github.com/ycorez/arduino-esp32-boards/releases/download/v0.1.0/waveshare-esp32-0.1.0.zip",
+          "url": "https://github.com/waveshareteam/arduino-esp32-boards/releases/download/v0.1.0/waveshare-esp32-0.1.0.zip",
           "architecture": "esp32",
           "name": "Waveshare ESP32 Boards"
         }
@@ -25,7 +25,7 @@
       "name": "waveshare",
       "tools": [],
       "help": {
-        "online": "https://github.com/ycorez/arduino-esp32-boards/issues"
+        "online": "https://github.com/waveshareteam/arduino-esp32-boards/issues"
       }
     }
   ]
