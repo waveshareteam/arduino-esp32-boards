@@ -67,11 +67,12 @@ jobs:
             mkdir -p "$source"
             git fetch --no-tags origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
             git archive "refs/tags/v$VERSION" | tar -x -C "$source"
-            for path in .github examples platform scripts; do
-              rsync -a --delete "$source/$path/" "$mirror/$path/"
-            done
-            cp "$source/LICENSE" "$source/README.md" "$mirror/"
-            git -C "$mirror" add -A -- .github examples platform scripts LICENSE README.md
+            rsync -a --delete \
+              --exclude='/.git' \
+              --exclude='/archives' \
+              --exclude='/package_waveshare_index.json' \
+              "$source/" "$mirror/"
+            git -C "$mirror" add -A
           fi
           if ! git -C "$mirror" diff --cached --quiet; then
             git -C "$mirror" commit -m "Mirror Waveshare board package $VERSION"
